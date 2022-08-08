@@ -1,0 +1,43 @@
+.word .correct {
+  color: white;
+}
+.word .incorrect {
+  color: #f56c6c;
+}
+.word .untyped {
+  color: white;
+}
+pre {
+  color: white;
+}
+.word span {
+  font-size: x-large;
+  color: gray;
+}
+.active {
+  position: relative;
+}
+.caret {
+  background-color: #65e495;
+  position: absolute;
+  animation: caretBlink linear 2s infinite;
+  width: 3.5px;
+  height: 25px;
+  border-radius: 20px;
+  transition: all 0.1s linear;
+}
+
+@keyframes caretBlink {
+  25% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
