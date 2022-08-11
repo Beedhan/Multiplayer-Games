@@ -1,14 +1,17 @@
 import { Box, SimpleGrid } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 import React, { useEffect } from "react";
-import { useGame } from "../../context/GameContext";
+import { useAppSelector } from "../../app/hooks";
 import { socket } from "../../utils/socket";
 import GameCards from "./GameCards";
 
 const GameContainer = () => {
-  const { roomCode, isAdmin } = useGame();
+  const { roomCode, isAdmin } = useAppSelector((state) => state.game);
+  const router = useRouter();
   useEffect(() => {
-    socket.on("ChangeMode", (message: any) => {
-      console.log(message);
+    socket.on("gamemode", (message: any) => {
+      console.log(message.mode.toLowerCase(), "lower");
+      router.push(`/${message.mode.toLowerCase()}`);
     });
   }, []);
   return (
@@ -20,7 +23,7 @@ const GameContainer = () => {
       p={5}
     >
       <SimpleGrid columns={2} spacing={5}>
-        <GameCards name="Typing Race" roomCode={roomCode} isAdmin={isAdmin} />
+        <GameCards name="Type Race" roomCode={roomCode} isAdmin={isAdmin} />
         <GameCards name="Quiz" roomCode={roomCode} isAdmin={isAdmin} />
       </SimpleGrid>
     </Box>

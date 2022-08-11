@@ -12,7 +12,9 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useAppDispatch } from "../app/hooks";
 import { useGame } from "../context/GameContext";
+import { isNewAdmin, setRoomCode } from "../slices/Game.slices";
 import styles from "../styles/Home.module.css";
 import { socket } from "../utils/socket";
 
@@ -21,15 +23,14 @@ const Home: NextPage = () => {
   const [name, setName] = useState("");
   const router = useRouter();
   const toast = useToast();
-  const { setRoomCode, setIsAdmin } = useGame();
-
+  const dispatch = useAppDispatch();
   const isError = name === "" || lobbyCode === "";
   const handleCreate = () => {
     socket.emit("createLobby", { name }, (message: any) => {
       console.log(message);
       if (!message.error) {
-        setRoomCode(message.roomCode);
-        setIsAdmin(true);
+        dispatch(setRoomCode(message.roomCode));
+        dispatch(isNewAdmin(true));
         router.push("/lobby");
       } else {
         toast({
@@ -49,7 +50,7 @@ const Home: NextPage = () => {
     socket.emit("joinLobby", { roomCode: lobbyCode, name }, (message: any) => {
       console.log(message);
       if (!message.error) {
-        setRoomCode(lobbyCode);
+        dispatch(setRoomCode(lobbyCode));
         router.push("/lobby");
       } else {
         toast({
@@ -69,7 +70,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Center height="100vh">
+      <Center height="100vh" bg="#262626">
         <VStack spacing={"20px"}>
           <HStack>
             <Button
@@ -87,6 +88,7 @@ const Home: NextPage = () => {
             <FormControl isInvalid={isError}>
               <Input
                 placeholder="Name"
+                color="white"
                 value={name}
                 required
                 mb={"10px"}
@@ -95,6 +97,7 @@ const Home: NextPage = () => {
               <Spacer />
               <Input
                 value={lobbyCode}
+                color="white"
                 placeholder="Room Id"
                 required
                 mb={"10px"}

@@ -12,31 +12,34 @@ import {
 } from "@chakra-ui/react";
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
 import GameContainer from "../components/Lobby/GameContainer";
 import UserListSection from "../components/Lobby/UserListSection";
-import { useGame } from "../context/GameContext";
+import { isNewAdmin, setUsers, updateUsers } from "../slices/Game.slices";
 import { socket } from "../utils/socket";
 
 const Lobby: NextPage = () => {
   const toast = useToast();
-  const { setUsers, users, roomCode, setIsAdmin } = useGame();
+  const { roomCode } = useAppSelector((state) => state.game);
+  const dispatch = useAppDispatch();
   useEffect(() => {
     getUsers();
     newJoined();
     userDisconnected();
     roomState();
     newAdmin();
-  }, [toast, setUsers]);
+  }, []);
+
   const getUsers = () => {
     socket.emit("getUsers", (message: any) => {
-      console.log(users);
-      setUsers(message);
+      console.log(message);
+      dispatch(setUsers(message));
     });
   };
 
   const newJoined = () => {
-    socket.on("newJoined", (message: any) => {
-      getUsers();
+    socket.off("newJoined").on("newJoined", (message: any) => {
+      dispatch(updateUsers(message.userName));
       toast({
         description: `${message.userName} joined`,
       });
@@ -55,7 +58,7 @@ const Lobby: NextPage = () => {
   const newAdmin = () => {
     socket.on("newadmin", (message: any) => {
       console.log(message);
-      setIsAdmin(true);
+      dispatch(isNewAdmin(true));
       toast({
         description: "You are new admin",
       });

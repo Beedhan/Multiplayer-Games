@@ -50,14 +50,14 @@ export class LobbyGateway implements OnGatewayInit, OnGatewayDisconnect {
     if (roomSize.length === 0) {
       return { error: 'Cannot find room' };
     }
-    const result = await this.lobbyService.join(joinLobbyDto, client);
+    const result = await this.lobbyService.join(
+      joinLobbyDto,
+      client,
+      this.server,
+    );
     if (!result) {
       return { error: 'Cannot join the room' };
     }
-
-    client.broadcast.emit('newJoined', {
-      userName: joinLobbyDto.name,
-    });
     return true;
   }
 

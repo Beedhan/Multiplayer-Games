@@ -1,11 +1,11 @@
 import { Box } from "@chakra-ui/react";
 import { AnimatePresence } from "framer-motion";
 import React from "react";
-import { useGame } from "../../context/GameContext";
+import { useAppSelector } from "../../app/hooks";
 import UserBox from "./UserBox";
 
 const UserListSection = () => {
-  const { users } = useGame();
+  const { users } = useAppSelector((state) => state.game);
   return (
     <Box
       bg="#EE4266"
@@ -16,9 +16,9 @@ const UserListSection = () => {
       style={{ boxShadow: "rgba(100, 100, 111, 0.2) 10px 0px 25px 1px" }}
       zIndex={100}
     >
-      <AnimatePresence>
-        {users.map((user) => (
-          <UserBox key={user} name={user} />
+      <AnimatePresence exitBeforeEnter>
+        {users.map((user, index) => (
+          <UserBox key={`${user}-${index}`} name={user} />
         ))}
       </AnimatePresence>
     </Box>

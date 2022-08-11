@@ -1,4 +1,5 @@
 import { Box, Button, Center, Heading, VStack } from "@chakra-ui/react";
+import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import { socket } from "../../utils/socket";
 
@@ -8,15 +9,18 @@ interface IButton {
   isAdmin: boolean;
 }
 const GameCards = ({ name, roomCode, isAdmin }: IButton) => {
+  const router = useRouter();
+
   const handleGameChange = () => {
     socket.emit(
       "ChangeMode",
       {
-        name,
+        name: name.replace(" ", ""),
         roomCode,
       },
       (message: any) => {
         console.log(message);
+        router.push(`/${message.toLowerCase()}`);
       }
     );
   };

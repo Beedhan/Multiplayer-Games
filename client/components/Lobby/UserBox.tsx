@@ -15,6 +15,7 @@ const UserBox = ({ name }: { name: string }) => {
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0 }}
+      layout
     >
       <HStack>
         <Avatar bg="#7692FF" name={name} mr={5} />

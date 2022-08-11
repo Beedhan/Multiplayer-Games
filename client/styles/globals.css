@@ -1,8 +1,22 @@
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
 .word .correct {
   color: white;
 }
 .word .incorrect {
   color: #f56c6c;
+  position: relative;
+}
+
+.word .incorrect::before {
+  content: "";
+  position: absolute;
+  width: 115%;
+  height: 10%;
+  background-color: #f56c6c;
+  bottom: 1px;
 }
 .word .untyped {
   color: white;
@@ -21,12 +35,25 @@ pre {
   background-color: #65e495;
   position: absolute;
   animation: caretBlink linear 2s infinite;
-  width: 3.5px;
+  width: 2.8px;
   height: 25px;
   border-radius: 20px;
-  transition: all 0.1s linear;
+  transition: all 0.05s linear;
 }
-
+.carret-end {
+  background-color: red;
+  animation: none !important;
+  height: 55px;
+  padding-bottom: 20px;
+}
+.carret-end::before {
+  content: "end";
+  font-size: small;
+  background-color: red;
+  color: white;
+  height: 40% !important;
+  position: absolute;
+}
 @keyframes caretBlink {
   25% {
     opacity: 0;
@@ -40,4 +67,8 @@ pre {
   100% {
     opacity: 1;
   }
+}
+
+.single_letter {
+  margin-right: 1px;
 }

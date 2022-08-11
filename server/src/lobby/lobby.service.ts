@@ -2,19 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { randomBytes } from 'crypto';
 import { Server, Socket } from 'socket.io';
+import { game_state } from 'src/misc/GameState';
 import { CreateLobbyDto } from './dto/create-lobby.dto';
 import { JoinLobbyDto } from './dto/join-lobby.dto';
 import { SelectGameDto } from './dto/select-game.dto';
 import { UpdateLobbyDto } from './dto/update-lobby.dto';
-
-interface IGameState {
-  [key: string]: {
-    players: string[];
-    currentGame?: string;
-    admin?: string;
-  };
-}
-const game_state: IGameState = {};
 
 @Injectable()
 export class LobbyService {
@@ -33,6 +25,10 @@ export class LobbyService {
         players: [createLobbyDto.name],
         currentGame: '',
         admin: client.id,
+        currentGameConfig: {
+          running: false,
+          playersState: [],
+        },
       };
     }
     client.data.name = createLobbyDto.name;
@@ -46,6 +42,7 @@ export class LobbyService {
   async join(
     @MessageBody() joinLobbyDto: JoinLobbyDto,
     @ConnectedSocket() client: Socket,
+    server: Server,
   ) {
     const roomId = joinLobbyDto.roomCode;
     const rooms = Array.from(client.rooms);
@@ -61,6 +58,9 @@ export class LobbyService {
     }
     client.data.name = joinLobbyDto.name;
     client.data.room = joinLobbyDto.roomCode;
+    server.in(joinLobbyDto.roomCode).emit('newJoined', {
+      userName: joinLobbyDto.name,
+    });
     console.log(game_state);
     return true;
   }
@@ -104,11 +104,16 @@ export class LobbyService {
       return { error: 'You cannot do those' };
     }
     game_state[gameName.roomCode].currentGame = gameName.name;
-    client.broadcast.emit('gamemode', {
+    game_state[gameName.roomCode].currentGameConfig.playersState = game_state[
+      gameName.roomCode
+    ].players.map((e) => {
+      return { [e]: false };
+    });
+    client.in(gameName.roomCode).emit('gamemode', {
       mode: gameName.name,
     });
     console.log(game_state);
-    return true;
+    return gameName.name;
   }
   gameState(@ConnectedSocket() client: Socket, server: Server) {
     const clientRoom = client.data.room;
