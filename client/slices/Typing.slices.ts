@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { playerState } from "../components/Typing/TyperRaceFunctions";
 
 interface state {
   time: number;
@@ -9,6 +10,8 @@ interface state {
   words: string[];
   phrase: string;
   isReady: boolean;
+  allReady: boolean;
+  raceProgress: { [x: string]: number }[];
 }
 
 const initialState: state = {
@@ -20,6 +23,8 @@ const initialState: state = {
   phrase: "",
   words: [],
   isReady: false,
+  allReady: false,
+  raceProgress: [{}],
 };
 
 const slice = createSlice({
@@ -32,7 +37,15 @@ const slice = createSlice({
     setready: (state) => {
       state.isReady = true;
     },
-    startrace: (state) => {
+    setAllReady: (state) => {
+      state.allReady = true;
+    },
+    startrace: (state, action: PayloadAction<playerState[]>) => {
+      console.log("race start");
+      const raceProgressDefault = action.payload.map((e) => {
+        return { [Object.keys(e)[0]]: 0 };
+      });
+      state.raceProgress = [...raceProgressDefault];
       state.running = true;
     },
     endrace: (state) => {
@@ -44,6 +57,19 @@ const slice = createSlice({
     setWord: (state, action: PayloadAction<string>) => {
       state.phrase = action.payload;
       state.words = action.payload.split(" ");
+    },
+    updateProgress: (
+      state,
+      action: PayloadAction<{ id: string; progress: number }>
+    ) => {
+      if (state.running) {
+        const playerIndex = state.raceProgress.findIndex(
+          (e) => Object.keys(e)[0] === action.payload.id
+        );
+        console.log(playerIndex);
+        state.raceProgress[playerIndex][action.payload.id] =
+          action.payload.progress;
+      }
     },
     addCorrectWord: (
       state,
@@ -69,5 +95,7 @@ export const {
   setGameTime,
   setWord,
   setready,
+  setAllReady,
+  updateProgress,
 } = slice.actions;
 export default slice.reducer;

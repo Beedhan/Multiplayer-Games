@@ -22,7 +22,7 @@ export class LobbyService {
     await client.join(roomCode);
     if (roomCode) {
       game_state[roomCode] = {
-        players: [createLobbyDto.name],
+        players: [{ name: createLobbyDto.name, id: client.id }],
         currentGame: '',
         admin: client.id,
         currentGameConfig: {
@@ -53,7 +53,10 @@ export class LobbyService {
     if (roomId) {
       game_state[roomId] = {
         ...game_state[roomId],
-        players: [...game_state[roomId].players, joinLobbyDto.name],
+        players: [
+          ...game_state[roomId].players,
+          { name: joinLobbyDto.name, id: client.id },
+        ],
       };
     }
     client.data.name = joinLobbyDto.name;
@@ -107,7 +110,7 @@ export class LobbyService {
     game_state[gameName.roomCode].currentGameConfig.playersState = game_state[
       gameName.roomCode
     ].players.map((e) => {
-      return { [e]: false };
+      return { [e.id]: { name: e.name, state: false } };
     });
     client.in(gameName.roomCode).emit('gamemode', {
       mode: gameName.name,

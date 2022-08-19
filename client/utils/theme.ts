@@ -1,9 +1,9 @@
 import { extendTheme } from "@chakra-ui/react";
-
+import "@fontsource/dynapuff";
 const theme = extendTheme({
   fonts: {
-    heading: `'Raleway', sans-serif`,
-    body: `'Poppins', sans-serif`,
+    heading: `'DynaPuff', sans-serif`,
+    body: `'Inter', sans-serif`,
   },
   components: {
     Progress: {

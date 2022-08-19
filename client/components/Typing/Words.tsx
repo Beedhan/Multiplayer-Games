@@ -35,7 +35,6 @@ const Words = ({
             {w.split("").map((letter, index) => {
               const currentLetterIndex =
                 typed.length - 1 === -1 ? 0 : typed.length - 1;
-              console.log(currentLetterIndex);
               const isCurrentLetter =
                 index === currentLetterIndex && currentWordIdx === wIndex;
               return (

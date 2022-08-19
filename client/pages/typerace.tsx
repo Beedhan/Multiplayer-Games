@@ -12,9 +12,11 @@ import {
 import React, { memo, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import GameReady from "../components/Typing/GameReady";
+import RaceProgress from "../components/Typing/RaceProgress";
 import {
   GetReadyState,
   ListenToConfig,
+  ListenToPlayerProgress,
   ListenToRaceEnd,
   ListenToReadyState,
   ReadyToPlay,
@@ -26,6 +28,7 @@ import {
   startrace,
   updateTime,
 } from "../slices/Typing.slices";
+import { socket } from "../utils/socket";
 // const text: string[] = [
 //   "this is a test quote for my typing game. Which will be really good and everybody will love this game. Which will be really good and everybody will love this game. Which will be really good and everybody will love this game.",
 //   "The water rush down the wash and into the slot canyon below. Two hikers had started the day to sunny weather without a cloud in the sky, but they hadn't thought to check the weather north of the canyon. Huge thunderstorms had brought a deluge o rain and produced flash floods heading their way. The two hikers had no idea what was coming.",
@@ -66,9 +69,9 @@ const TypeRace = () => {
   const handleTyping = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const input = e.key;
     const isSpace = e.code === "Space";
-    if (!running) {
-      dispatch(startrace());
-    }
+    // if (!running) {
+    //   dispatch(startrace());
+    // }
     if (input.length === 1 && !isSpace) {
       if (input === currentWord[typed.length]) {
         setCorrects((state) => state + 1);
@@ -109,6 +112,7 @@ const TypeRace = () => {
       setPrevWordIdx(currentWordIdx + 1);
       setCurrentWord(words[currentWordIdx + 1]);
       setTyped("");
+      setProgress(progress);
     }
     if (input === "Backspace") {
       handleBackspace();
@@ -146,8 +150,8 @@ const TypeRace = () => {
 
   const handleTimeout = () => {
     if (inputRef.current) {
-      inputRef.current.disabled = true;
       dispatch(endrace());
+      // inputRef.current.disabled = true;
       console.log("over");
       if (caretRef.current && currentLetterRef.current) {
         caretRef.current.style.top =
@@ -221,7 +225,9 @@ const TypeRace = () => {
 
   useEffect(() => {
     let progress = (wordHistory.length / words.length) * 100;
-    setProgress(progress);
+    socket.emit("typerace_progress", {
+      progress,
+    });
     console.log(progress);
   }, [wordHistory.length]);
 
@@ -229,6 +235,7 @@ const TypeRace = () => {
   useEffect(() => {
     ListenToRaceEnd(dispatch);
     ListenToConfig(dispatch);
+    ListenToPlayerProgress(dispatch);
   }, []);
 
   return (
@@ -243,6 +250,7 @@ const TypeRace = () => {
       </Button>
 
       <Container maxW="5xl">
+        <RaceProgress />
         <Progress
           value={progress}
           size="sm"
@@ -327,7 +335,7 @@ const TypeRace = () => {
           )}
         </div>
       </Container>
-      <GameReady />
+      {!running && <GameReady />}
     </Center>
   );
 };

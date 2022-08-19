@@ -1,9 +1,9 @@
 interface playerState {
-  [key: string]: boolean;
+  [key: string]: { name: string; state: boolean };
 }
 interface IGameState {
   [key: string]: {
-    players: string[];
+    players: { name: string; id: string }[];
     currentGame?: string;
     admin?: string;
     currentGameConfig?: {

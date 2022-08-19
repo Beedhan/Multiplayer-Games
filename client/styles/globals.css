@@ -1,6 +1,7 @@
 body {
   overflow-x: hidden;
   overflow-y: hidden;
+  font-family: "DynaPuff", cursive !important;
 }
 .word .correct {
   color: white;

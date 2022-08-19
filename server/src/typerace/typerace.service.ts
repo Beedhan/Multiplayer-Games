@@ -1,3 +1,4 @@
+import { UpdateProgressTyperaceDto } from './dto/update-progress.dto';
 import { Socket, Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
 import { ConnectedSocket } from '@nestjs/websockets';
@@ -22,23 +23,34 @@ export class TyperaceService {
 
     const indexOfPlayer = currentRoom.currentGameConfig.playersState.findIndex(
       (val) => {
-        return Object.keys(val)[0] === client.data.name;
+        return Object.keys(val)[0] === client.id;
       },
     );
-    currentRoom.currentGameConfig.playersState[indexOfPlayer][
-      client.data.name
-    ] = true;
+    currentRoom.currentGameConfig.playersState[indexOfPlayer][client.id] = {
+      name: client.data.name,
+      state: true,
+    };
     server.in(clientRoom).emit('typerace_readyState', {
       msg: game_state[clientRoom].currentGameConfig.playersState,
     });
-    console.log(game_state[clientRoom].currentGameConfig.playersState);
+    const allReady = game_state[
+      clientRoom
+    ].currentGameConfig.playersState.every(
+      (e) => Object.values(e)[0].state === true,
+    );
+
+    if (allReady) {
+      this.start(client, server);
+    }
+
     return true;
   }
 
   start(@ConnectedSocket() client: Socket, server: Server) {
     const clientRoom = client.data.room;
     game_state[clientRoom].currentGameConfig = {
-      time: 15,
+      ...game_state[clientRoom].currentGameConfig,
+      time: 30,
       running: true,
       words: text[Math.floor(Math.random() * text.length)],
     };
@@ -51,13 +63,16 @@ export class TyperaceService {
         running: false,
       };
       server.in(clientRoom).emit('typerace_end');
-    }, 15 * 1000);
+    }, game_state[clientRoom].currentGameConfig.time * 1000);
     return true;
   }
 
   ready_state(@ConnectedSocket() client: Socket): any {
     const clientRoom = client.data.room;
-    console.log('someone did ');
+    console.log(
+      'someone did ',
+      game_state[clientRoom].currentGameConfig.playersState,
+    );
     return game_state[clientRoom].currentGameConfig.playersState;
   }
 
@@ -65,8 +80,16 @@ export class TyperaceService {
     return `This action returns a # typerace`;
   }
 
-  update(id: number, updateTyperaceDto: UpdateTyperaceDto) {
-    return `This action updates a #${id} typerace`;
+  updateProgress(
+    @ConnectedSocket() client: Socket,
+    server: Server,
+    updateProgressTyperaceDto: UpdateProgressTyperaceDto,
+  ) {
+    const clientRoom = client.data.room;
+    server.in(clientRoom).emit('typerace_progress', {
+      id: client.id,
+      progress: updateProgressTyperaceDto.progress,
+    });
   }
 
   remove(id: number) {

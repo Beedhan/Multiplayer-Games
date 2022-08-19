@@ -2,10 +2,12 @@ import { AppDispatch } from "./../../app/store";
 import { socket } from "../../utils/socket";
 import {
   endrace,
+  setAllReady,
   setGameTime,
   setready,
   setWord,
   startrace,
+  updateProgress,
 } from "../../slices/Typing.slices";
 
 export interface GameConfig {
@@ -13,15 +15,16 @@ export interface GameConfig {
   currentGame: string;
   admin: string;
   currentGameConfig: CurrentGameConfig;
+  playerState: playerState[];
 }
-interface playerState {
-  [key: string]: boolean;
+export interface playerState {
+  [key: string]: { name: string; state: boolean };
 }
 export interface CurrentGameConfig {
   time: number;
   running: boolean;
   words: string;
-  playersState?: playerState[];
+  playersState: playerState[];
 }
 
 export const ReadyToPlay = (dispatch: AppDispatch): void => {
@@ -52,9 +55,18 @@ export const ListenToReadyState = (setPlayersState: any): void => {
 };
 export const ListenToConfig = (dispatch: AppDispatch): void => {
   socket.on("typerace_config", ({ msg }: { msg: GameConfig }) => {
+    console.log(msg, "start msg");
     dispatch(setGameTime(msg.currentGameConfig.time));
     dispatch(setWord(msg.currentGameConfig.words));
-    dispatch(startrace());
+    dispatch(setAllReady());
+    dispatch(startrace(msg.currentGameConfig.playersState));
+    return msg;
+  });
+};
+export const ListenToPlayerProgress = (dispatch: AppDispatch): void => {
+  socket.on("typerace_progress", (msg: { id: string; progress: number }) => {
+    console.log(msg, "progress listen");
+    dispatch(updateProgress(msg));
     return msg;
   });
 };

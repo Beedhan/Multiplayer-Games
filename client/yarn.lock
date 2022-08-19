@@ -759,6 +759,11 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
+"@fontsource/dynapuff@^4.5.0":
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/@fontsource/dynapuff/-/dynapuff-4.5.0.tgz#daa63d82c39bff3c8f199f9ce9a079c0452b8be4"
+  integrity sha512-tVwoRAAcGU9VZl3x0mw5hhPn8yYF2vIqWaNJ8EcjRV1FakLq3hMrFT7NnJHqgkqsAjTEwOp9g9xAiYJ6EqIGPQ==
+
 "@humanwhocodes/config-array@^0.10.4":
   version "0.10.4"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.10.4.tgz#01e7366e57d2ad104feea63e72248f22015c520c"

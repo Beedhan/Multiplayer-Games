@@ -1,3 +1,4 @@
+import { UpdateProgressTyperaceDto } from './dto/update-progress.dto';
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -34,11 +35,18 @@ export class TyperaceGateway {
 
   @SubscribeMessage('updateTyperace')
   update(@MessageBody() updateTyperaceDto: UpdateTyperaceDto) {
-    return this.typeraceService.update(updateTyperaceDto.id, updateTyperaceDto);
+    // return this.typeraceService.update(updateTyperaceDto.id, updateTyperaceDto);
   }
 
   @SubscribeMessage('removeTyperace')
   remove(@MessageBody() id: number) {
     return this.typeraceService.remove(id);
+  }
+  @SubscribeMessage('typerace_progress')
+  updateProgress(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() progress: UpdateProgressTyperaceDto,
+  ) {
+    return this.typeraceService.updateProgress(client, this.server, progress);
   }
 }
