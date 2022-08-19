@@ -17,7 +17,7 @@ import {
 } from '@nestjs/websockets/interfaces/hooks';
 
 @WebSocketGateway({
-  cors: '*',
+  cors: '*:*',
 })
 export class LobbyGateway implements OnGatewayInit, OnGatewayDisconnect {
   constructor(private readonly lobbyService: LobbyService) {}

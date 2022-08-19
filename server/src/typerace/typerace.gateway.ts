@@ -12,7 +12,7 @@ import { UpdateTyperaceDto } from './dto/update-typerace.dto';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
-  cors: '*',
+  cors: '*:*',
 })
 export class TyperaceGateway {
   constructor(private readonly typeraceService: TyperaceService) {}
