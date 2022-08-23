@@ -4,7 +4,7 @@ import { Socket, Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
 import { ConnectedSocket } from '@nestjs/websockets';
 import { game_state } from 'src/misc/GameState';
-import { UpdateTyperaceDto } from './dto/update-typerace.dto';
+import randomWords from 'random-words';
 
 const text: string[] = [
   'this is a test quote for my typing game. Which will be really good and everybody will love this game. Which will be really good and everybody will love this game. Which will be really good and everybody will love this game.',
@@ -53,7 +53,7 @@ export class TyperaceService {
       ...game_state[clientRoom].currentGameConfig,
       time: 30,
       running: true,
-      words: text[Math.floor(Math.random() * text.length)],
+      words: randomWords({ join: ' ', min: 10, max: 20 }),
     };
     server.in(clientRoom).emit('typerace_config', {
       msg: game_state[clientRoom],
