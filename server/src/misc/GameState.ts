@@ -1,5 +1,13 @@
 interface playerState {
-  [key: string]: { name: string; state: boolean };
+  [key: string]: {
+    name: string;
+    state: boolean;
+    typeGameStats?: TypeGameStats;
+  };
+}
+interface TypeGameStats {
+  wpm: number;
+  accuracy: number;
 }
 interface IGameState {
   [key: string]: {

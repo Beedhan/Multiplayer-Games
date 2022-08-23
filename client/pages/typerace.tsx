@@ -11,10 +11,11 @@ import {
 } from "@chakra-ui/react";
 import React, { memo, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
+import GameOver from "../components/Typing/GameOver";
 import GameReady from "../components/Typing/GameReady";
 import RaceProgress from "../components/Typing/RaceProgress";
 import {
-  GetReadyState,
+  GetPlayersState,
   ListenToConfig,
   ListenToPlayerProgress,
   ListenToRaceEnd,
@@ -25,6 +26,9 @@ import Words from "../components/Typing/Words";
 import {
   addCorrectWord,
   endrace,
+  setCurrentWordIdx,
+  setMistakes,
+  setWordHistory,
   startrace,
   updateTime,
 } from "../slices/Typing.slices";
@@ -41,17 +45,23 @@ import { socket } from "../utils/socket";
 
 const TypeRace = () => {
   const dispatch = useAppDispatch();
-  const { running, time, correctWords, correctLetterCount, gameTime, words } =
-    useAppSelector((state) => state.typerace);
+  const {
+    running,
+    time,
+    correctWords,
+    correctLetterCount,
+    gameTime,
+    currentWordIdx,
+    words,
+    mistakes,
+    stats,
+    wordHistory,
+  } = useAppSelector((state) => state.typerace);
   const [typed, setTyped] = useState("");
   const [currentWord, setCurrentWord] = useState<string>("");
-  const [currentWordIdx, setCurrentWordIdx] = useState(0);
   const [prevWordIdx, setPrevWordIdx] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [corrects, setCorrects] = useState(0);
-  const [wordHistory, setWordHistory] = useState<string[]>([]);
+  // const [wordHistory, setWordHistory] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
-  const [timeInSec, setTimeInSec] = useState<number>(0);
   const [showDebug, setShowDebug] = useState<boolean>(false);
 
   const currentWordRef = useRef<HTMLDivElement>(null);
@@ -74,18 +84,17 @@ const TypeRace = () => {
     // }
     if (input.length === 1 && !isSpace) {
       if (input === currentWord[typed.length]) {
-        setCorrects((state) => state + 1);
         setTyped((state) => state + input);
         setPrevWordIdx(currentWordIdx);
         currentWordRef.current?.children[typed.length].classList.add("correct");
       } else if (typed.length < currentWord.length) {
         setTyped((state) => state + input);
-        setMistakes((state) => state + 1);
+        dispatch(setMistakes());
         currentWordRef.current?.children[typed.length].classList.add(
           "incorrect"
         );
       } else {
-        setMistakes((state) => state + 1);
+        dispatch(setMistakes());
       }
     }
     if (input === " " && typed.length !== 0) {
@@ -103,12 +112,8 @@ const TypeRace = () => {
       if (typed === currentWord) {
         dispatch(addCorrectWord({ word: typed, index: currentWordIdx }));
       }
-      setWordHistory((state) => {
-        const temp = state;
-        temp[currentWordIdx] = typed;
-        return temp;
-      });
-      setCurrentWordIdx((current) => current + 1);
+      dispatch(setWordHistory(typed));
+      dispatch(setCurrentWordIdx(true));
       setPrevWordIdx(currentWordIdx + 1);
       setCurrentWord(words[currentWordIdx + 1]);
       setTyped("");
@@ -141,7 +146,7 @@ const TypeRace = () => {
         }
       }
       if (hasMistake) {
-        setCurrentWordIdx((state) => state - 1);
+        dispatch(setCurrentWordIdx(false));
         setCurrentWord(words[currentWordIdx - 1]);
         setTyped(wordHistory[currentWordIdx - 1]);
       }
@@ -203,10 +208,7 @@ const TypeRace = () => {
     let interval: NodeJS.Timer;
     if (running) {
       interval = setInterval(() => {
-        setTimeInSec((val) => {
-          dispatch(updateTime(val + 1));
-          return val + 1;
-        });
+        dispatch(updateTime());
         if (!running) {
           clearInterval(interval);
         }
@@ -233,7 +235,7 @@ const TypeRace = () => {
 
   //Multiplayer related stuffs
   useEffect(() => {
-    ListenToRaceEnd(dispatch);
+    ListenToRaceEnd(dispatch, stats);
     ListenToConfig(dispatch);
     ListenToPlayerProgress(dispatch);
   }, []);
@@ -251,29 +253,23 @@ const TypeRace = () => {
 
       <Container maxW="5xl">
         <RaceProgress />
-        <Progress
-          value={progress}
-          size="sm"
-          borderRadius={20}
-          color="#65e495"
-        />
         <HStack spacing={5} alignItems="end" mb={5}>
           <Text color="white">
-            <span style={{ fontSize: "2rem" }}>{timeInSec}</span>/{gameTime} sec
+            <span style={{ fontSize: "2rem" }}>{time}</span>/{gameTime} sec
           </Text>
           <Text color="white">
             {Math.round((correctLetterCount * (60 / gameTime)) / 5)} WPM
           </Text>
           <Text color="white">
-            {isFinite(
-              Math.round(
-                ((correctLetterCount - mistakes) / correctLetterCount) * 100
-              )
-            )
-              ? Math.round(
+            {Math.min(
+              Math.max(
+                Math.round(
                   ((correctLetterCount - mistakes) / correctLetterCount) * 100
-                )
-              : 0}
+                ),
+                0
+              ),
+              100
+            )}
             {"% "}
             Accuracy
           </Text>
@@ -336,6 +332,7 @@ const TypeRace = () => {
         </div>
       </Container>
       {!running && <GameReady />}
+      {/* {!running && allReady && <GameOver />} */}
     </Center>
   );
 };

@@ -1,50 +1,46 @@
 import {
-  Avatar,
-  AvatarBadge,
-  Button,
-  HStack,
+  VStack,
+  TableContainer,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  Text,
+  Center,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Spinner,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
+  ModalFooter,
+  Button,
 } from "@chakra-ui/react";
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { startrace } from "../../slices/Typing.slices";
 import {
   GetPlayersState,
-  ListenToReadyState,
+  ListenToEndStatsReady,
   playerState,
   ReadyToPlay,
 } from "./TyperRaceFunctions";
 
-const GameReady = () => {
+const GameOver = () => {
   const dispatch = useAppDispatch();
-  const { isReady, allReady } = useAppSelector((state) => state.typerace);
-  const [playersState, setPlayersState] = useState<playerState[]>([]);
   const [playersStats, setPlayersStats] = useState<playerState[]>([]);
+  const { isReady, allReady } = useAppSelector((state) => state.typerace);
 
   useEffect(() => {
-    GetPlayersState(setPlayersState);
-    ListenToReadyState(setPlayersState);
-    // ListenToEndStatsReady(setPlayersState);
+    ListenToEndStatsReady(setPlayersStats);
   }, []);
-  console.log(playersState, "steee");
+  console.log(playersStats, "over");
+
   const handleReadyToPlay = () => {
     ReadyToPlay(dispatch);
   };
-  const EndGameStats = () => {
+  const PlayerLists = () => {
     return (
       <TableContainer w={"100%"}>
         <Table variant="simple">
@@ -62,7 +58,7 @@ const GameReady = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {playersState?.map((player) => (
+            {playersStats?.map((player) => (
               <>
                 {Object.values(player).map((val, index) => (
                   <Tr key={index}>
@@ -78,41 +74,15 @@ const GameReady = () => {
       </TableContainer>
     );
   };
-  const PlayerLists = () => {
-    if (playersState.length > 0) {
-      return (
-        <HStack>
-          {playersState.map((player) => (
-            <>
-              {Object.values(player).map((user, index) => (
-                <>
-                  <Avatar name={user.name}>
-                    <AvatarBadge
-                      boxSize="1.25em"
-                      bg={user.state ? "green.500" : "red.500"}
-                    />
-                  </Avatar>
-                </>
-              ))}
-            </>
-          ))}
-        </HStack>
-      );
-    } else {
-      return null;
-    }
-  };
   return (
-    <Modal isOpen={!allReady} onClose={() => false} isCentered>
+    <Modal isOpen={false} onClose={() => false} isCentered size={"lg"}>
       <ModalOverlay bg="none" backdropFilter="auto" backdropBlur="5px" />
       <ModalContent background={"#262625"} color="white">
-        <ModalHeader>Ready</ModalHeader>
+        <ModalHeader>Game Over</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <PlayerLists />
-          <EndGameStats />
         </ModalBody>
-
         <ModalFooter>
           <Button
             onClick={handleReadyToPlay}
@@ -121,7 +91,7 @@ const GameReady = () => {
             mb={5}
             disabled={isReady}
           >
-            Ready?
+            Play Again
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -129,4 +99,4 @@ const GameReady = () => {
   );
 };
 
-export default memo(GameReady);
+export default GameOver;

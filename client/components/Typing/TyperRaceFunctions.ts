@@ -1,4 +1,4 @@
-import { AppDispatch } from "./../../app/store";
+import { AppDispatch, store } from "./../../app/store";
 import { socket } from "../../utils/socket";
 import {
   endrace,
@@ -9,6 +9,7 @@ import {
   startrace,
   updateProgress,
 } from "../../slices/Typing.slices";
+import { StatsType } from "../../utils/types";
 
 export interface GameConfig {
   players: any[];
@@ -18,7 +19,11 @@ export interface GameConfig {
   playerState: playerState[];
 }
 export interface playerState {
-  [key: string]: { name: string; state: boolean };
+  [key: string]: {
+    name: string;
+    state: boolean;
+    typeGameStats?: { wpm: number; accuracy: number };
+  };
 }
 export interface CurrentGameConfig {
   time: number;
@@ -27,6 +32,7 @@ export interface CurrentGameConfig {
   playersState: playerState[];
 }
 
+//Sending ready status
 export const ReadyToPlay = (dispatch: AppDispatch): void => {
   socket.emit("typerace_ready", (msg: GameConfig) => {
     console.log(msg);
@@ -34,25 +40,47 @@ export const ReadyToPlay = (dispatch: AppDispatch): void => {
     return msg;
   });
 };
-export const ListenToRaceEnd = (dispatch: AppDispatch): void => {
+
+//Listening to end of race
+export const ListenToRaceEnd = (
+  dispatch: AppDispatch,
+  stats: StatsType
+): void => {
   socket.on("typerace_end", (msg: GameConfig) => {
+    const state = store.getState();
     dispatch(endrace());
+    socket.emit("typerace_end", { stats: state.typerace.stats });
     return msg;
   });
 };
-export const GetReadyState = (setPlayersState: any): void => {
-  socket.emit("typerace_readyState", (msg: GameConfig) => {
+
+//Fetching others ready state
+export const GetPlayersState = (setPlayersState: any): void => {
+  socket.emit("typerace_playersState", (msg: GameConfig) => {
     setPlayersState(msg);
     return msg;
   });
 };
+
+//listening to others ready state
+// export const ListenToEndStatsReady = (setPlayersStats: any): void => {
+//   socket.on("typerace_states", ({ msg }: playerState) => {
+//     console.log(msg, "end stats listen");
+//     setPlayersStats(msg);
+//     return msg;
+//   });
+// };
+
+//listening to others ready state
 export const ListenToReadyState = (setPlayersState: any): void => {
-  socket.on("typerace_readyState", ({ msg }: playerState) => {
+  socket.on("typerace_states", ({ msg }: playerState) => {
     console.log(msg, "ready state listen");
     setPlayersState(msg);
     return msg;
   });
 };
+
+//Listening to game config
 export const ListenToConfig = (dispatch: AppDispatch): void => {
   socket.on("typerace_config", ({ msg }: { msg: GameConfig }) => {
     console.log(msg, "start msg");
@@ -63,6 +91,8 @@ export const ListenToConfig = (dispatch: AppDispatch): void => {
     return msg;
   });
 };
+
+//Listening to opponents progress
 export const ListenToPlayerProgress = (dispatch: AppDispatch): void => {
   socket.on("typerace_progress", (msg: { id: string; progress: number }) => {
     console.log(msg, "progress listen");

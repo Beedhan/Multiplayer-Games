@@ -1,3 +1,4 @@
+import { StatsType } from "./../utils/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { playerState } from "../components/Typing/TyperRaceFunctions";
 
@@ -5,34 +6,42 @@ interface state {
   time: number;
   running: boolean;
   correctWords: string[];
+  wordHistory: string[];
   correctLetterCount: number;
   gameTime: number;
   words: string[];
   phrase: string;
   isReady: boolean;
+  mistakes: number;
   allReady: boolean;
-  raceProgress: { [x: string]: number }[];
+  raceProgress: { [x: string]: { progress: number; name: string } }[];
+  stats: StatsType;
+  currentWordIdx: number;
 }
 
 const initialState: state = {
   time: 0,
+  mistakes: 0,
   running: false,
   correctWords: [],
   correctLetterCount: 0,
+  currentWordIdx: 0,
   gameTime: 0,
   phrase: "",
   words: [],
   isReady: false,
   allReady: false,
   raceProgress: [{}],
+  stats: { wpm: 0, accuracy: 0 },
+  wordHistory: [],
 };
 
 const slice = createSlice({
   initialState,
   name: "TypingRace",
   reducers: {
-    updateTime: (state, action: PayloadAction<number>) => {
-      state.time = action.payload;
+    updateTime: (state) => {
+      state.time = state.time + 1;
     },
     setready: (state) => {
       state.isReady = true;
@@ -43,20 +52,34 @@ const slice = createSlice({
     startrace: (state, action: PayloadAction<playerState[]>) => {
       console.log("race start");
       const raceProgressDefault = action.payload.map((e) => {
-        return { [Object.keys(e)[0]]: 0 };
+        return {
+          [Object.keys(e)[0]]: { progress: 0, name: Object.values(e)[0].name },
+        };
       });
       state.raceProgress = [...raceProgressDefault];
       state.running = true;
     },
-    endrace: (state) => {
-      state.running = false;
-    },
     setGameTime: (state, action: PayloadAction<number>) => {
       state.gameTime = action.payload;
+    },
+    setCurrentWordIdx: (state, action: PayloadAction<boolean>) => {
+      if (action.payload === true) {
+        state.currentWordIdx = state.currentWordIdx + 1;
+      } else {
+        state.currentWordIdx = state.currentWordIdx - 1;
+      }
+    },
+    setMistakes: (state) => {
+      state.mistakes = state.mistakes + 1;
     },
     setWord: (state, action: PayloadAction<string>) => {
       state.phrase = action.payload;
       state.words = action.payload.split(" ");
+    },
+    setWordHistory: (state, action: PayloadAction<string>) => {
+      const temp = state.wordHistory;
+      temp[state.currentWordIdx] = action.payload;
+      state.wordHistory = temp;
     },
     updateProgress: (
       state,
@@ -67,8 +90,10 @@ const slice = createSlice({
           (e) => Object.keys(e)[0] === action.payload.id
         );
         console.log(playerIndex);
-        state.raceProgress[playerIndex][action.payload.id] =
-          action.payload.progress;
+        state.raceProgress[playerIndex][action.payload.id] = {
+          ...state.raceProgress[playerIndex][action.payload.id],
+          progress: action.payload.progress,
+        };
       }
     },
     addCorrectWord: (
@@ -84,6 +109,31 @@ const slice = createSlice({
       state.correctLetterCount = correctLetters + correctWordArr.length;
       state.correctWords = temp;
     },
+    endrace: (state) => {
+      const wpm = Math.round(
+        (state.correctLetterCount * (60 / state.gameTime)) / 5
+      );
+      const accuracy = Math.round(
+        ((state.correctLetterCount - state.mistakes) /
+          state.correctLetterCount) *
+          100
+      );
+      // state.gameTime = 0;
+      // state.raceProgress = [{}];
+      state.phrase = "";
+      state.correctLetterCount = 0;
+      state.currentWordIdx = 0;
+      state.words = [];
+      state.wordHistory = [];
+      state.mistakes = 0;
+      state.correctWords = [];
+      state.time = 0;
+      state.running = false;
+      state.isReady = false;
+      state.allReady = false;
+      console.log(wpm, accuracy);
+      state.stats = { wpm, accuracy: Math.min(Math.max(accuracy, 0), 100) };
+    },
   },
 });
 
@@ -97,5 +147,8 @@ export const {
   setready,
   setAllReady,
   updateProgress,
+  setMistakes,
+  setCurrentWordIdx,
+  setWordHistory,
 } = slice.actions;
 export default slice.reducer;

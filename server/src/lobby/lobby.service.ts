@@ -26,6 +26,8 @@ export class LobbyService {
         currentGame: '',
         admin: client.id,
         currentGameConfig: {
+          time: 0,
+          words: '',
           running: false,
           playersState: [],
         },

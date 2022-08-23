@@ -16,13 +16,13 @@ const RaceProgress = () => {
       {raceProgress &&
         raceProgress.map((e) => (
           <>
-            {Object.keys(e).map((name) => (
+            {Object.values(e).map((user) => (
               <Avatar
-                key={name}
-                name={name}
+                key={user.name}
+                name={user.name}
                 transition="all"
                 position={"absolute"}
-                left={`${e[name]}%`}
+                left={`${user.progress}%`}
                 size="sm"
               />
             ))}

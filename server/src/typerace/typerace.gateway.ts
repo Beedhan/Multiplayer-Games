@@ -1,3 +1,4 @@
+import { EndTyperaceDto } from './dto/end-typerace.dto';
 import { UpdateProgressTyperaceDto } from './dto/update-progress.dto';
 import {
   WebSocketGateway,
@@ -23,24 +24,17 @@ export class TyperaceGateway {
     return this.typeraceService.ready(client, this.server);
   }
 
-  @SubscribeMessage('typerace_end')
-  endrace() {
-    return this.typeraceService.findOne();
-  }
-
-  @SubscribeMessage('typerace_readyState')
+  @SubscribeMessage('typerace_playersState')
   readyState(@ConnectedSocket() client: Socket) {
-    return this.typeraceService.ready_state(client);
+    return this.typeraceService.players_state(client);
   }
 
-  @SubscribeMessage('updateTyperace')
-  update(@MessageBody() updateTyperaceDto: UpdateTyperaceDto) {
-    // return this.typeraceService.update(updateTyperaceDto.id, updateTyperaceDto);
-  }
-
-  @SubscribeMessage('removeTyperace')
-  remove(@MessageBody() id: number) {
-    return this.typeraceService.remove(id);
+  @SubscribeMessage('typerace_end')
+  remove(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() stats: EndTyperaceDto,
+  ) {
+    return this.typeraceService.end(client, this.server, stats);
   }
   @SubscribeMessage('typerace_progress')
   updateProgress(

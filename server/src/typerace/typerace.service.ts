@@ -1,3 +1,4 @@
+import { EndTyperaceDto } from './dto/end-typerace.dto';
 import { UpdateProgressTyperaceDto } from './dto/update-progress.dto';
 import { Socket, Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
@@ -30,7 +31,7 @@ export class TyperaceService {
       name: client.data.name,
       state: true,
     };
-    server.in(clientRoom).emit('typerace_readyState', {
+    server.in(clientRoom).emit('typerace_states', {
       msg: game_state[clientRoom].currentGameConfig.playersState,
     });
     const allReady = game_state[
@@ -58,26 +59,66 @@ export class TyperaceService {
       msg: game_state[clientRoom],
     });
     setTimeout(() => {
-      console.log('race endddd');
       game_state[clientRoom].currentGameConfig = {
+        ...game_state[clientRoom].currentGameConfig,
         running: false,
       };
-      server.in(clientRoom).emit('typerace_end');
-    }, game_state[clientRoom].currentGameConfig.time * 1000);
+      console.log(
+        'race ended',
+        JSON.stringify(game_state[clientRoom].currentGameConfig.playersState),
+      ),
+        server.in(clientRoom).emit('typerace_end');
+    }, game_state[clientRoom].currentGameConfig.time * 1000 + 1000);
     return true;
   }
 
-  ready_state(@ConnectedSocket() client: Socket): any {
+  players_state(@ConnectedSocket() client: Socket): any {
     const clientRoom = client.data.room;
-    console.log(
-      'someone did ',
-      game_state[clientRoom].currentGameConfig.playersState,
-    );
     return game_state[clientRoom].currentGameConfig.playersState;
   }
 
-  findOne() {
-    return `This action returns a # typerace`;
+  end(
+    @ConnectedSocket() client: Socket,
+    server: Server,
+    stats: EndTyperaceDto,
+  ) {
+    const clientRoom = client.data.room;
+    const currentRoom = game_state[clientRoom];
+    const indexOfPlayer = currentRoom.currentGameConfig.playersState.findIndex(
+      (val) => {
+        return Object.keys(val)[0] === client.id;
+      },
+    );
+    if (
+      currentRoom.currentGameConfig.playersState[indexOfPlayer][client.id]
+        .state !== false
+    ) {
+      currentRoom.currentGameConfig.playersState[indexOfPlayer][client.id] = {
+        ...currentRoom.currentGameConfig.playersState[indexOfPlayer][client.id],
+        state: false,
+        typeGameStats: { accuracy: stats.stats.accuracy, wpm: stats.stats.wpm },
+      };
+    }
+    const allReady = game_state[
+      clientRoom
+    ].currentGameConfig.playersState.every((e) =>
+      Object.values(e)[0].typeGameStats ? true : false,
+    );
+
+    if (allReady) {
+      // server.in(clientRoom).emit('typestats_ready', {
+      //   msg: currentRoom.currentGameConfig.playersState,
+      // });
+      server.in(clientRoom).emit('typerace_states', {
+        msg: game_state[clientRoom].currentGameConfig.playersState,
+      });
+    }
+    console.log(
+      JSON.stringify(currentRoom.currentGameConfig.playersState),
+      'allstatsready',
+    );
+
+    return true;
   }
 
   updateProgress(
