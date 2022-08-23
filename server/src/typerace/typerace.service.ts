@@ -40,7 +40,7 @@ export class TyperaceService {
 
   start(@ConnectedSocket() client: Socket, server: Server) {
     const clientRoom = client.data.room;
-    const words = randomWords({ join: ' ', min: 10, max: 20 });
+    const words = randomWords({ join: ' ', min: 25, max: 40 });
     game_state[clientRoom].currentGameConfig = {
       ...game_state[clientRoom].currentGameConfig,
       time: 30,
