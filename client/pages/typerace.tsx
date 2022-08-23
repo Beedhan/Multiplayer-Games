@@ -9,6 +9,7 @@ import {
   Progress,
   Text,
 } from "@chakra-ui/react";
+import Head from "next/head";
 import React, { memo, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import GameOver from "../components/Typing/GameOver";
@@ -28,6 +29,7 @@ import {
   endrace,
   setCurrentWordIdx,
   setMistakes,
+  setTyped,
   setWordHistory,
   startrace,
   updateTime,
@@ -56,8 +58,9 @@ const TypeRace = () => {
     mistakes,
     stats,
     wordHistory,
+    typed,
   } = useAppSelector((state) => state.typerace);
-  const [typed, setTyped] = useState("");
+  // const [typed, setTyped] = useState("");
   const [currentWord, setCurrentWord] = useState<string>("");
   const [prevWordIdx, setPrevWordIdx] = useState(0);
   // const [wordHistory, setWordHistory] = useState<string[]>([]);
@@ -84,11 +87,11 @@ const TypeRace = () => {
     // }
     if (input.length === 1 && !isSpace) {
       if (input === currentWord[typed.length]) {
-        setTyped((state) => state + input);
+        dispatch(setTyped(typed + input));
         setPrevWordIdx(currentWordIdx);
         currentWordRef.current?.children[typed.length].classList.add("correct");
       } else if (typed.length < currentWord.length) {
-        setTyped((state) => state + input);
+        dispatch(setTyped(typed + input));
         dispatch(setMistakes());
         currentWordRef.current?.children[typed.length].classList.add(
           "incorrect"
@@ -116,7 +119,7 @@ const TypeRace = () => {
       dispatch(setCurrentWordIdx(true));
       setPrevWordIdx(currentWordIdx + 1);
       setCurrentWord(words[currentWordIdx + 1]);
-      setTyped("");
+      dispatch(setTyped(""));
       setProgress(progress);
     }
     if (input === "Backspace") {
@@ -131,7 +134,7 @@ const TypeRace = () => {
     if (typed.length > 0) {
       resetClasses(typed.length - 1);
       setPrevWordIdx(currentWordIdx);
-      setTyped((state) => state.slice(0, -1));
+      dispatch(setTyped(typed.slice(0, -1)));
     }
 
     //?Back to previous word
@@ -148,7 +151,7 @@ const TypeRace = () => {
       if (hasMistake) {
         dispatch(setCurrentWordIdx(false));
         setCurrentWord(words[currentWordIdx - 1]);
-        setTyped(wordHistory[currentWordIdx - 1]);
+        dispatch(setTyped(wordHistory[currentWordIdx - 1]));
       }
     }
   };
@@ -247,6 +250,9 @@ const TypeRace = () => {
       display={"flex"}
       flexDirection={"column"}
     >
+      <Head>
+        <title>TypeRace</title>
+      </Head>
       <Button onClick={() => setShowDebug((val) => !val)} size="sm" mb={5}>
         Toggle Debug
       </Button>

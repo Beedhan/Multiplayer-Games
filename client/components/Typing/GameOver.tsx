@@ -22,7 +22,6 @@ import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   GetPlayersState,
-  ListenToEndStatsReady,
   playerState,
   ReadyToPlay,
 } from "./TyperRaceFunctions";
@@ -32,9 +31,6 @@ const GameOver = () => {
   const [playersStats, setPlayersStats] = useState<playerState[]>([]);
   const { isReady, allReady } = useAppSelector((state) => state.typerace);
 
-  useEffect(() => {
-    ListenToEndStatsReady(setPlayersStats);
-  }, []);
   console.log(playersStats, "over");
 
   const handleReadyToPlay = () => {

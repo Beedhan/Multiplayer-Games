@@ -11,6 +11,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { NextPage } from "next";
+import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import GameContainer from "../components/Lobby/GameContainer";
@@ -71,6 +72,9 @@ const Lobby: NextPage = () => {
   };
   return (
     <Center height="100vh" bg="#262626">
+      <Head>
+        <title>Lobby</title>
+      </Head>
       <Container maxW="85vw" maxH="90vh" color="white">
         <VStack height={"90vh"}>
           <Heading fontSize="2xl">Multiplayer Games</Heading>

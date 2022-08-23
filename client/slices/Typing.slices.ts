@@ -17,6 +17,7 @@ interface state {
   raceProgress: { [x: string]: { progress: number; name: string } }[];
   stats: StatsType;
   currentWordIdx: number;
+  typed: string;
 }
 
 const initialState: state = {
@@ -34,6 +35,7 @@ const initialState: state = {
   raceProgress: [{}],
   stats: { wpm: 0, accuracy: 0 },
   wordHistory: [],
+  typed: "",
 };
 
 const slice = createSlice({
@@ -45,6 +47,9 @@ const slice = createSlice({
     },
     setready: (state) => {
       state.isReady = true;
+    },
+    setTyped: (state, action: PayloadAction<string>) => {
+      state.typed = action.payload;
     },
     setAllReady: (state) => {
       state.allReady = true;
@@ -121,6 +126,7 @@ const slice = createSlice({
       // state.gameTime = 0;
       // state.raceProgress = [{}];
       state.phrase = "";
+      state.typed = "";
       state.correctLetterCount = 0;
       state.currentWordIdx = 0;
       state.words = [];
@@ -150,5 +156,6 @@ export const {
   setMistakes,
   setCurrentWordIdx,
   setWordHistory,
+  setTyped,
 } = slice.actions;
 export default slice.reducer;
