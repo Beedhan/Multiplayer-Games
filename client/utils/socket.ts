@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
 
-export const socket = io("https://multiplayer-api.beedhan.dev");
+const api_url = process.env.NEXT_PUBLIC_SOCKET_URL;
+export const socket = io(api_url || "");
 // export const socket = io("http://localhost:3001");
